@@ -6,7 +6,7 @@ printers. It was written by Peter B. West in 1999-2000, shipped as part of
 Ghostscript from 2007 to 2011, and removed from Ghostscript in version 9.05.
 
 This directory preserves the last upstream copy of the driver, from the
-Ghostscript 9.04 release, together with the author's protocol documentation.
+Ghostscript 9.04 release.
 
 ## Status
 
@@ -31,13 +31,8 @@ cartridge support.
 ```
 lx5000/
 ├── original-source/
-│   ├── ghostscript-9.04/
-│   │   └── gdevlx50.c        # driver source, untouched
-│   └── author-docs/          # author's printer protocol notes (1999)
-│       ├── initialisation.html
-│       ├── printheads.html
-│       ├── protocol.html
-│       └── swipecmd.html
+│   └── ghostscript-9.04/
+│       └── gdevlx50.c        # driver source, untouched
 ├── patches/
 │   └── openprinting/         # compatibility patches (separate PR)
 └── README.md
@@ -94,6 +89,7 @@ the file itself.
 | 2000-04-18 | Author's version 1.41 (fixes an infinite loop in colour printing) |
 | 2000 | Distributed by the author as a source RPM for Aladdin Ghostscript 6.0 |
 | 2001-04-11 | Added to Red Hat's ghostscript-6.51 RPM |
+| 2001-08-17 | Author's Lexmark page last updated (`lexmark.html,v 1.24`) |
 | 2001-11-14 | Added to Debian's ghostscript build (Debian bug #58657) |
 | 2002-07-30 | Last edit in ESP Ghostscript (RCS rev 1.4, `easysw`) |
 | 2007-06-06 | Merged into upstream Ghostscript by Till Kamppeter as part of the ESP Ghostscript merge (`2bce78bce`; earlier attempts `33e99334f` and `36af9160f` were reverted) |
@@ -112,6 +108,8 @@ the file itself.
   2002-07-30 (ESP Ghostscript).
 - Ghostscript removed the driver in 2011 after contacting the authors;
   it was never re-added.
+- The author's Lexmark page (`lexmark.html,v 1.24`) was last modified
+  2001-08-17, per its archived footer.
 
 ## Distribution copies and patches
 
@@ -138,10 +136,7 @@ No distribution was found to carry driver-specific patches, so there are no
 
 The original license header is preserved unmodified in the source file.
 
-`author-docs/*.html`: written by Peter B. West (author RCS IDs, 1999). These
-files contain **no explicit license notice**. They are included as
-historical documentation pending maintainer confirmation (see
-[Open questions](#open-questions)).
+The author's HTML protocol documents from the OpenPrinting archive are not included, since they carry no explicit license (see Excluded files).
 
 ## Build status
 
@@ -206,16 +201,12 @@ source tree. They remain available at that URL.
 | `blckalgn.out`, `blckhcln.out`, `showcart.out`, `hidecart.out` | Printer maintenance command data (head alignment, head cleaning, cartridge movement), not driver source |
 | `lx.control`, `lexp5` | Author's maintenance helper scripts for Red Hat's historical `rhs-printfilters` setup |
 | `*.gif` | Web page decoration |
-
-## Open questions
-
-- Are the author's HTML protocol documents (no explicit license) acceptable
-  to include? They can be removed if not.
+| `initialisation.html`, `printheads.html`, `protocol.html`, `swipecmd.html` | Author's printer protocol documentation (Peter B. West, 1999; author RCS IDs). No license statement in the files, on the author's archived pages, or in Debian's copyright records, so not redistributed here. SHA-256: `ed16bdd2396da29ab40e4afb49a0bfc2ca6b6f30e494db4fb78b50b44c3fb1fa` (initialisation.html), `ab86947ab75d38ce74eb2f8f29c803f706aced1e6b7803d953bbd6e336e5c29c` (printheads.html), `c2d4acab1875bd0cdfb541a37f218d702d4f522bbffabf177488dc16b67520f3` (protocol.html), `c72e692c69d2e58dbb99f5abcab8b1a427d398f43d8e573026d98d2903ff3e9e` (swipecmd.html) |
 
 ## References
 
 - OpenPrinting archive: https://openprinting.org/download/printing/lx5000/
 - Ghostscript bug 691820: https://bugs.ghostscript.com/show_bug.cgi?id=691820
 - Author's homepage (Wayback Machine): http://web.archive.org/web/20190303235842/http://pbw.id.au/lexmark/lexmark.html
-- Author's Ghostscript 6.0 build page (Wayback Machine): http://pbw.id.au/ghostscript/compileGS.html
+- Author's Ghostscript 6.0 build page (Wayback Machine): https://web.archive.org/web/2019/http://pbw.id.au/ghostscript/compileGS.html
 - Issue: https://github.com/OpenPrinting/legacy-drivers/issues/18
