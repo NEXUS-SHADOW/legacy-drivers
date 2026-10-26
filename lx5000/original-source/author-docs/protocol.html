@@ -1,0 +1,136 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+   <TITLE>Lexmark 5000 protocol</TITLE>
+    <meta name="keywords" content="lexmark 5000, protocol">
+</HEAD>
+<BODY TEXT="#000000" BGCOLOR="#FFFFFF"
+ LINK="#0000EE" VLINK="#990000" ALINK="#003366">
+
+    <center>
+      <h1>
+	Lexmark 5000 Protocol
+      </h1>     
+    </center>    
+
+<center>
+      <IMG SRC="rule11.gif" width=350>
+    </center>
+
+    <h2>Command types</h2>
+    
+    <p>
+      There are two types of commands in the 5000's repertoire:
+    </p>
+    <ul>
+      <li>
+	Escape asterisk commands commencing with the two-byte
+	sequence `0x1b 0x2a' (Escape Asterisk).&nbsp; These sub-divide into 
+	four classes:
+	<ul>
+	  <li>
+	    Escape m<br>
+	    The third byte is `0x6d'; the ASCII 'm'.
+	  </li>
+	  <li>
+	    Escape 7<br>
+	    The third byte is `0x7'; the ASCII BEL.
+	  </li>
+	  <li>
+	    Escape 3<br> The third byte is '0x3'; the ASCII ETX or
+	    Ctrl-C.<br> This is the <b>vertical paper movement</b>
+	    command, followed by a two-byte relative move.
+	  </li>
+	  <li>
+	    Escape 4<br> The third byte is '0x4'; the ASCII EOT or
+	    Ctrl-D.<br> This is the <b>swipe print command</b>,
+	    followed by a four-byte total command length (including
+	    header), and the remainder of the swipe command.
+	  </li>
+	</ul>
+      </li>
+      <li>
+	A5 commands commencing with the byte `0xa5'.<br>
+	The second &amp; third bytes are the MSB and LSB of the length 
+	of the remainder of the command.
+      </li>
+    </ul>
+
+    <h3>Detailed discussion</h3>
+
+    <ul>
+      <li>
+	<p>
+	<a
+	  href="./printheads.html">Printheads &amp; nozzle
+	    configuration</a>
+	</p>
+	<p>
+	  A discussion of the configuration of the nozzles in the
+	  printheads of the cartridges.&nbsp; Essential for an
+	  understanding of the swipe command.
+	</p>
+      </li>
+      <li>
+	<p>
+	<a href="./initialisation.html">Initialisation, maintenance
+	&amp; paper movement commands</a>
+	</p>
+	<p>
+	  Very little is known about the specific functions of
+	  individual initialisation commands.&nbsp; In general, a
+	  collection of these appears at the beginning of each page.
+	  </p>
+	<p>
+	  There are only two known paper movement commands, so this
+	  bit is easy.
+	</p>
+      </li>
+      <li>
+	<p>
+	  <a href="./swipecmd.html">The swipe command</a>
+	</p>
+	<p>
+	  The heart of the driver is the swipe command, which does
+	  almost all of the work.
+	</p>
+      </li>
+    </ul>
+
+<CENTER>
+      <IMG SRC="rule11.gif" width=350>
+    </CENTER>
+<br>
+<center>
+      Peter B. West<br>
+      <a href="mailto:pbwest@netscape.net">pbwest@netscape.net</a><br>
+      "Lord, to whom shall we go?"
+
+<HR width="100%">
+
+
+<br>
+    <center>
+      Created with<br>
+      <img src="linuxlogo2.gif" border=0 width=88
+      height=31 align=center>
+</center>
+    
+
+<CENTER><P><FONT SIZE=-1>
+<!-- hhmts start -->
+Last modified: Mon Nov  8 00:19:25 EST 1999
+<!-- hhmts end -->
+<!-
+$Id: protocol.html,v 1.4 1999-11-08 01:13:07+10 pbw Exp pbw $
+-->
+</FONT></P></CENTER>
+
+
+    <center>
+	Tue 19th Oct 1999.
+    </center>
+
+
+</BODY>
+</HTML>

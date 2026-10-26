@@ -50,6 +50,12 @@ Printer driver for **(Konica) Minolta PagePro 1[234]xxW**
 
 A printer driver for the (Konica) Minolta PagePro 1200W, 1250W, 1300W, 1350W, and 1400W.
 
+### lx5000
+
+Printer driver for **Lexmark 500, Z51, and Z82**
+
+Ghostscript device (removed from Ghostscript in 9.05) generating the proprietary bitmap format of these Lexmark inkjet printers. Preserved from Ghostscript 9.04; does not currently build against current Ghostscript, compatibility patches to follow.
+
 ### cjet
 
 Printer driver for **Canon CaPSL level III+ laser printers**
