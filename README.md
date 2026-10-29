@@ -54,7 +54,7 @@ A printer driver for the (Konica) Minolta PagePro 1200W, 1250W, 1300W, 1350W, an
 
 Printer driver for **Lexmark 500, Z51, and Z82**
 
-Ghostscript device (removed from Ghostscript in 9.05) generating the proprietary bitmap format of these Lexmark inkjet printers. Preserved from Ghostscript 9.04; does not currently build against current Ghostscript, compatibility patches to follow.
+Ghostscript device (removed from Ghostscript in 9.05) generating the proprietary bitmap format of these Lexmark inkjet printers. Preserved from Ghostscript 9.04; builds against current Ghostscript with the included OpenPrinting patch.
 
 ### cjet
 
