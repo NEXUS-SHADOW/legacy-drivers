@@ -1,0 +1,262 @@
+--- a/gdevlx50.c
++++ b/gdevlx50.c
+@@ -688,33 +688,6 @@
+ } while (0)
+ 
+ /************************************************************************
+- *		Macro for defining gx_device_procs structure		*
+- ************************************************************************/
+-
+-#define lx5000_proctab(get_params, put_params, map_color_rgb, map_cmyk_color)\
+-{	gdev_prn_open,\
+-        gx_default_get_initial_matrix,\
+-        NULL,	/* sync_output */\
+-        gdev_prn_output_page,\
+-        gdev_prn_close,\
+-        NULL,	/* map_rgb_color */\
+-        map_color_rgb,\
+-        NULL,	/* fill_rectangle */\
+-        NULL,	/* tile_rectangle */\
+-        NULL,	/* copy_mono */\
+-        NULL,	/* copy_color */\
+-        NULL,	/* draw_line */\
+-        NULL,	/* get_bits */\
+-        get_params,\
+-        put_params,\
+-        map_cmyk_color,\
+-        NULL,	/* get_xfont_procs */\
+-        NULL,	/* get_xfont_device */\
+-        NULL,	/* map_rgb_alpha_color */\
+-        gx_page_device_get_page_device	/* get_page_device */\
+-}
+-
+-/************************************************************************
+  *   T Y P E D E F S   E N U M S   &   E X T E R N A L   S T O R A G E	*
+  ************************************************************************/
+                                 /* The procedure descriptors */
+@@ -726,13 +699,23 @@
+ static dev_proc_map_cmyk_color(lx5000_map_cmyk_color);
+ static dev_proc_map_color_rgb(lx5000_map_color_rgb);
+ 
+-static const gx_device_procs lx5000_procs =
+-    lx5000_proctab(
+-                     lx5000_get_params,
+-                     lx5000_put_params,
+-                     lx5000_map_color_rgb,
+-                     lx5000_map_cmyk_color
+-                     );
++static void
++lx5000_initialize_device_procs(gx_device *dev)
++{
++    /* Standard printer defaults: open, close, output_page, page device, ... */
++    gdev_prn_initialize_device_procs(dev);
++
++    /* The driver's own procedures (formerly passed to lx5000_proctab) */
++    set_dev_proc(dev, get_params, lx5000_get_params);
++    set_dev_proc(dev, put_params, lx5000_put_params);
++    set_dev_proc(dev, map_color_rgb, lx5000_map_color_rgb);
++    set_dev_proc(dev, map_cmyk_color, lx5000_map_cmyk_color);
++
++    /* Colour (CMYK, 1 bit per component) is the default mode;
++       lx5000_put_params switches these for black-only mode */
++    set_dev_proc(dev, encode_color, lx5000_map_cmyk_color);
++    set_dev_proc(dev, decode_color, cmyk_1bit_map_color_cmyk);
++}
+ 
+                                 /* The device descriptors */
+                                 /* define a subclass containing useful state */
+@@ -786,7 +769,7 @@
+ lx5000_device far_data gs_lx5000_device = {
+     prn_device_margins_body
+         ( lx5000_device,
+-          lx5000_procs,
++          lx5000_initialize_device_procs,
+           "lx5000",
+           DEFAULT_WIDTH_10THS,
+           DEFAULT_HEIGHT_10THS,
+@@ -961,7 +944,7 @@
+  *----------------------------------------------------------------------*
+  *----------------------------------------------------------------------*/
+ static void
+-pageInit( unsigned int alignA, unsigned int alignB, FILE *prn_stream )
++pageInit( unsigned int alignA, unsigned int alignB, gp_file *prn_stream )
+ {
+     static char page_init[] = {
+         0x1b, '*', 'm', 0, 0x40, ALIGN_A_DEF, ALIGN_B_DEF, 0xf, 0xf
+@@ -970,7 +953,7 @@
+     page_init[ALIGN_A_OFFSET] = (uchar)alignA;
+     page_init[ALIGN_B_OFFSET] = (uchar)alignB;
+ 
+-    fwrite( page_init, 1, sizeof( page_init ), prn_stream );
++    gp_fwrite( page_init, 1, sizeof( page_init ), prn_stream );
+ }
+ 
+ /*----------------------------------------------------------------------*
+@@ -978,16 +961,16 @@
+  *----------------------------------------------------------------------*
+  *----------------------------------------------------------------------*/
+ static void
+-pageEnd( FILE *prn_stream )
++pageEnd( gp_file *prn_stream )
+ {
+     static const char page_end[] = {
+         0x1b,'*', 7, 0x65
+     };
+ 
+-    fwrite( page_end, 1, sizeof( page_end ), prn_stream );
++    gp_fwrite( page_end, 1, sizeof( page_end ), prn_stream );
+                                 /* Do it twice - that's what the Windows */
+                                 /* driver for the 5000 does	*/
+-    fwrite( page_end, 1, sizeof( page_end ), prn_stream );
++    gp_fwrite( page_end, 1, sizeof( page_end ), prn_stream );
+ }
+ 
+ /*----------------------------------------------------------------------*
+@@ -997,7 +980,7 @@
+ static void
+ feedPaper( lx5000_device *lx5000dev, int newLine, int *currentLine,
+            penData pens[NUM_COLOURS][PENS_PER_COLOUR],
+-           FILE *prn_stream )
++           gp_file *prn_stream )
+ {
+     static const char feed_paper[] = {
+         0x1b, '*', 3
+@@ -1009,9 +992,9 @@
+     if ( newLine >= *currentLine )
+     {
+         _1200ths = (ushort)(( newLine - *currentLine ) * FEED_FACTOR );
+-        fwrite( feed_paper, 1, sizeof( feed_paper ), prn_stream );
+-        putc( _1200ths >> 8 , prn_stream);
+-        putc( _1200ths & 0xff, prn_stream );
++        gp_fwrite( feed_paper, 1, sizeof( feed_paper ), prn_stream );
++        gp_fputc( _1200ths >> 8 , prn_stream);
++        gp_fputc( _1200ths & 0xff, prn_stream );
+ 
+         *currentLine			= newLine;
+ 
+@@ -1115,18 +1098,18 @@
+ 
+                                 /* Allocate a buffer for a single scan line */
+             lineBuffer	= (byte *)gs_alloc_byte_array
+-                ( gs_lib_ctx_get_non_gc_memory_t(), lx5000dev->scanLineBytes, 1,
++                ( lx5000dev->memory->non_gc_memory, lx5000dev->scanLineBytes, 1,
+                   "lx5000_print_page(lineBuffer)" );
+ 
+             swipeBuf	= (byte *)gs_alloc_byte_array
+-                ( gs_lib_ctx_get_non_gc_memory_t(), lx5000dev->swipeBufSize, 1,
++                ( lx5000dev->memory->non_gc_memory, lx5000dev->swipeBufSize, 1,
+                   "lx5000_print_page(swipeBuf)" );
+ 
+             for ( colour = 0 ; colour < numColours; colour++ )
+             {
+                 if ( ( colourBufs[colour] =
+                        (byte *)gs_alloc_byte_array
+-                       ( gs_lib_ctx_get_non_gc_memory_t(), lx5000dev->penBufSize, 1,
++                       ( lx5000dev->memory->non_gc_memory, lx5000dev->penBufSize, 1,
+                          "lx5000_print_page(colourBufs)"
+                          )
+                        ) == NULL )
+@@ -1167,19 +1150,19 @@
+         for ( colour = 0; colour < numColours; colour++ )
+         {
+             if ( colourBufs[colour] != NULL )
+-                gs_free_object( gs_lib_ctx_get_non_gc_memory_t(),
++                gs_free_object( lx5000dev->memory->non_gc_memory,
+                                 (char *)colourBufs[colour],
+                                 "lx5000_print_page(colourBufs)" );
+             colourBufs[ colour ]	= NULL;
+             colourBufPtrs[ colour ]	= NULL;
+         }
+         if ( swipeBuf != NULL )
+-            gs_free_object( gs_lib_ctx_get_non_gc_memory_t(),
++            gs_free_object( lx5000dev->memory->non_gc_memory,
+                             (char *)swipeBuf, "lx5000_print_page(swipeBuf)" );
+         swipeBuf	= NULL;
+         *swipeBufPtr	= NULL;
+         if ( lineBuffer != NULL )
+-            gs_free_object( gs_lib_ctx_get_non_gc_memory_t(),
++            gs_free_object( lx5000dev->memory->non_gc_memory,
+                     (char *)lineBuffer, "lx5000_print_page(lineBuffer)" );
+         lineBuffer	= NULL;
+         *lineBufferPtr	= NULL;
+@@ -1683,7 +1666,7 @@
+              penData pens[NUM_COLOURS][PENS_PER_COLOUR],
+              bool lineEmpty[NUM_COLOURS][COLOUR_BUF_LINES], byte *swipeBuf,
+              int *nextLineToPrint, int *nextLineToGet, int direction,
+-             int _1stColour, int lastColour, FILE *prn_stream )
++             int _1stColour, int lastColour, gp_file *prn_stream )
+ {
+     /*--------------------------------------------------------------------*
+       For unidirectional colour swathes, the effective print direction on
+@@ -1983,7 +1966,7 @@
+                            ps1, ps2, nozzles, UNKNOWN1VAL,
+                            columnExtent, _1stColumn, lastColumn );
+     }
+-    fwrite( swipeBuf,1, outp - swipeBuf, prn_stream );
++    gp_fwrite( swipeBuf,1, outp - swipeBuf, prn_stream );
+ 
+     for ( colour = _1stColour; colour <= lastColour; colour++ )
+         for ( pen = 0; pen < lx5000dev->pensPerColour; pen++ )
+@@ -2017,7 +2000,7 @@
+   Send the page to the printer.
+  *----------------------------------------------------------------------*/
+ static int
+-lx5000_print_page( gx_device_printer *pdev, FILE *prn_stream )
++lx5000_print_page( gx_device_printer *pdev, gp_file *prn_stream )
+ {
+     /*
+      Data structures for the buffer:
+@@ -2181,7 +2164,7 @@
+ 
+                                 /* Initialize the printer and reset margins. */
+     pageInit( (uchar)lx5000dev->alignA, (uchar)lx5000dev->alignB, prn_stream );
+-    fwrite( init_string, 1, sizeof( init_string ), prn_stream );
++    gp_fwrite( init_string, 1, sizeof( init_string ), prn_stream );
+ 
+         /*--------------------------------------------------------------*
+          Assume that COLOUR_BUF_LINES of data are available, starting with
+@@ -2290,7 +2273,7 @@
+ 
+                                 /* Eject the page, reinitialize the printer */
+     pageEnd( prn_stream );
+-    fflush( prn_stream );
++    gp_fflush( prn_stream );
+     getColourBufs( lx5000dev, &lineBuffer, colourBufs, &swipeBuffer,
+                    DEALLOCATE );
+     if ( lx5000dev->dryTime )
+@@ -2492,6 +2475,8 @@
+             dev_proc(pdev, map_cmyk_color) = lx5000_map_cmyk_color;
+             dev_proc(pdev, map_rgb_color) = NULL;
+             dev_proc(pdev, map_color_rgb) = lx5000_map_color_rgb;
++            dev_proc(pdev, encode_color) = lx5000_map_cmyk_color;
++            dev_proc(pdev, decode_color) = cmyk_1bit_map_color_cmyk;
+         }
+         else
+         {
+@@ -2499,6 +2484,8 @@
+             dev_proc(pdev, map_cmyk_color) = NULL;
+             dev_proc(pdev, map_rgb_color) = gdev_prn_map_rgb_color;
+             dev_proc(pdev, map_color_rgb) = gdev_prn_map_color_rgb;
++            dev_proc(pdev, encode_color) = gdev_prn_map_rgb_color;
++            dev_proc(pdev, decode_color) = gdev_prn_map_color_rgb;
+         }
+         if ( pdev->is_open )
+             gs_closedevice(pdev);
+@@ -2517,6 +2504,8 @@
+                 dev_proc(pdev, map_cmyk_color) = lx5000_map_cmyk_color;
+                 dev_proc(pdev, map_rgb_color) = NULL;
+                 dev_proc(pdev, map_color_rgb) = lx5000_map_color_rgb;
++                dev_proc(pdev, encode_color) = lx5000_map_cmyk_color;
++                dev_proc(pdev, decode_color) = cmyk_1bit_map_color_cmyk;
+             }
+             else
+             {
+@@ -2524,6 +2513,8 @@
+                 dev_proc(pdev, map_cmyk_color) = NULL;
+                 dev_proc(pdev, map_rgb_color) = gdev_prn_map_rgb_color;
+                 dev_proc(pdev, map_color_rgb) = gdev_prn_map_color_rgb;
++                dev_proc(pdev, encode_color) = gdev_prn_map_rgb_color;
++                dev_proc(pdev, decode_color) = gdev_prn_map_color_rgb;
+             }
+             if ( pdev->is_open )
+                 gs_closedevice(pdev);

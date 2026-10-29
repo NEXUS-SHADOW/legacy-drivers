@@ -11,9 +11,9 @@ Ghostscript 9.04 release.
 ## Status
 
 - **Source:** preserved untouched, byte-identical to Ghostscript 9.04.
-- **Build:** does **not** compile against current Ghostscript (see
-  [Build status](#build-status)). Compatibility patches will be provided
-  separately under `patches/openprinting/`.
+- **Build:** the original source does **not** compile against current
+  Ghostscript; with `patches/openprinting/0001-port-to-current-ghostscript-api.patch`
+  applied it builds and runs (see [Build status](#build-status)).
 - **Hardware:** the original printer hardware was **not available** for
   testing. Nothing in this directory has been verified on a real printer.
 
@@ -34,7 +34,9 @@ lx5000/
 │   └── ghostscript-9.04/
 │       └── gdevlx50.c        # driver source, untouched
 ├── patches/
-│   └── openprinting/         # compatibility patches (separate PR)
+│   └── openprinting/
+│       ├── 0001-port-to-current-ghostscript-api.patch
+│       └── README.md         # patch description, build and test details
 └── README.md
 ```
 
@@ -167,6 +169,19 @@ The author's HTML protocol documents from the OpenPrinting archive are not inclu
     positional procs table no longer line up with the current procedure
     slots.
 
+### Patched source against current Ghostscript
+
+- Patch: `patches/openprinting/0001-port-to-current-ghostscript-api.patch`
+  (details in `patches/openprinting/README.md`)
+- Ghostscript: master `e47b17bcd` (2026-10-24), same environment as above,
+  configured with `--with-drivers=ALL,LEXMARK_CONTRIB`
+- **Result: compiles and links**; the only warning is the pre-existing
+  `-Wuninitialized` one (see below).
+- Renders `examples/colorcir.ps` and `examples/tiger.eps` to a file in both
+  colour and black-only (`-dBitsPerPixel=1`) modes, exit code 0, no hang
+  within 60 seconds.
+- Output not verified on a real printer (hardware not available).
+
 ### Original source within Ghostscript 9.04
 
 - Ghostscript: tag `ghostscript-9.04` (`91954fa8a`), built from `gs/`
@@ -196,7 +211,7 @@ source tree. They remain available at that URL.
 | File | Reason for exclusion |
 |---|---|
 | `contrib.mak.addon` | Same build rule as in Ghostscript 9.04's `gs/contrib/contrib.mak` (lines 514 onward); documented here instead |
-| `lx5000.patch` | OpenPrinting's patch to re-add the driver to Ghostscript 9.05 (2011); superseded by the compatibility patches planned under `patches/openprinting/` |
+| `lx5000.patch` | OpenPrinting's patch to re-add the driver to Ghostscript 9.05 (2011); superseded by `patches/openprinting/0001-port-to-current-ghostscript-api.patch` |
 | `README.txt` | OpenPrinting's archive notes, not part of the original driver; its content is reflected in this README |
 | `blckalgn.out`, `blckhcln.out`, `showcart.out`, `hidecart.out` | Printer maintenance command data (head alignment, head cleaning, cartridge movement), not driver source |
 | `lx.control`, `lexp5` | Author's maintenance helper scripts for Red Hat's historical `rhs-printfilters` setup |
